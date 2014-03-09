@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = ZohoCrm::VERSION
   spec.authors       = ["rightgo09"]
   spec.email         = ["skyarrow09@gmail.com"]
-  spec.summary       = %q{TODO: Write a short summary. Required.}
-  spec.description   = %q{TODO: Write a longer description. Optional.}
+  spec.summary       = %q{Zoho CRM gem}
+  spec.description   = %q{Read data in Zoho CRM by using API.}
   spec.homepage      = ""
   spec.license       = "MIT"
 
