@@ -1,6 +1,6 @@
 # ZohoCrm
 
-TODO: Write a gem description
+Read data in Zoho CRM by using API.
 
 ## Installation
 
@@ -18,7 +18,7 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+    require "zoho_crm"
 
 ## Contributing
 
