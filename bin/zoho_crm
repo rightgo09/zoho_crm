@@ -1,3 +1,18 @@
 #!/usr/bin/env ruby
 
 require 'zoho_crm'
+
+ZohoCrm.token = ""
+records = ZohoCrm::Potential.get_my_records(
+  select_columns: [],
+  from_index: 1,
+  to_index: 20,
+  sort_column_string: "",
+  sort_order_string: "",
+  last_modified_time: Time.now,
+  new_format: 1,
+)
+
+records.each do |record|
+  puts record["id"]
+end
