@@ -16,3 +16,13 @@ records = ZohoCrm::Potential.get_my_records(
 records.each do |record|
   puts record["id"]
 end
+
+records = ZohoCrm::Potential.get_search_records(
+  select_columns: [],
+  #search_condition: {"Email" => {"is" => "test@test.com"}},
+  #search_condition: {"Annual Revenue" => {">" => 1000}},
+  #search_condition: {"customfield1" => {"<" => 1000}},
+  #search_condition: {"Company" => {"contains" => "oho"}},
+  #search_condition: {"Company" => {"starts with" => "zoho"}},
+  #search_condition: {"Company" => {"ends with" => "zoho"}},
+)

@@ -38,8 +38,21 @@ module ZohoCrm::Util
       "scope" => "crmapi",
     )
 
-    if query["selectColumns"].present? && query["selectColumns"].is_a?(Array)
+    if query.has_key?("selectColumns") && query["selectColumns"].is_a?(Array)
       query["selectColumns"] = zoho_module_name+"("+query["selectColumns"].join(",")+")"
+    end
+
+    if query.has_key?("searchCondition") && query["selectColumns"].is_a?(Hash)
+      field, cond_pair = query["searchCondition"].first
+      op, val = cond_pair.first
+      if op == "contains"
+        val = "*#{val}*"
+      elsif op == "starts with"
+        val = "#{val}*"
+      elsif op == "ends with"
+        val = "*#{val}"
+      end
+      query["searchCondition"] = "(#{field}|#{op}|#{val})"
     end
 
     query
