@@ -2,7 +2,7 @@ require "zoho_crm/version"
 
 module ZohoCrm
   class << self
-    attr_accessor :token
+    attr_accessor :token, :debug
   end
 end
 

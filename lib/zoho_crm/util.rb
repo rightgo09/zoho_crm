@@ -10,33 +10,21 @@ module ZohoCrm::Util
 
     query = build_query(params)
 
-    response = HTTParty.get(url, query: query)
-
-    results = []
+    response = http_get(url, query)
 
     unless response.code == 200
       $stderr.puts "Zoho API HTTP status code is [#{response.code}], body is [#{response.body}]."
-      return results
+      return []
     end
 
     data = Oj.load(response.body)
 
-    if data["response"].has_key?("nodata")
-      $stderr.puts data["response"]["nodata"]["message"]
-      return results
+    if nodata?(data)
+      $stderr.puts nodata_message(data)
+      return []
     end
 
-    rows = data["response"]["result"]["Potentials"]["row"]
-    rows = [rows] if rows.class == Hash
-    results = rows.map do |row|
-      if row["FL"].class == Array
-        row["FL"].inject({}) { |h, r| h[r["val"]] = r["content"]; h }
-      else row["FL"].class == Hash
-        {row["FL"]["val"] => row["FL"]["content"]}
-      end
-    end
-
-    results
+    parse(data)
   end
 
   def build_url
@@ -60,6 +48,41 @@ module ZohoCrm::Util
 
   def zoho_module_name
     @zoho_module_name ||= self.to_s.demodulize.pluralize
+  end
+
+  def http_get(url, query)
+    if ZohoCrm.debug
+      $stderr.puts "url: #{url}"
+      $stderr.puts "query: #{query}"
+    end
+
+    response = HTTParty.get(url, query: query)
+
+    if ZohoCrm.debug
+      $stderr.puts "response: #{response}"
+    end
+
+    response
+  end
+
+  def nodata?(data)
+    data["response"].has_key?("nodata")
+  end
+
+  def nodata_message(data)
+    data["response"]["nodata"]["message"]
+  end
+
+  def parse(data)
+    rows = data["response"]["result"]["Potentials"]["row"]
+    rows = [rows] if rows.class == Hash
+    rows.map do |row|
+      if row["FL"].class == Array
+        row["FL"].inject({}) { |h, r| h[r["val"]] = r["content"]; h }
+      else row["FL"].class == Hash
+        {row["FL"]["val"] => row["FL"]["content"]}
+      end
+    end
   end
 
 end
