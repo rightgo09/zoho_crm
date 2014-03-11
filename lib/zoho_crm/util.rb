@@ -11,7 +11,9 @@ module ZohoCrm::Util
     HTTParty.get(url, query: query)
   end
 
-  def build_url(action)
+  def build_url
+    # called method name
+    action = caller.first.split(' ')[1].delete('`').delete("'").camelize(:lower)
     "https://crm.zoho.com/crm/private/json/#{zoho_module_name}/#{action}"
   end
 
