@@ -27,9 +27,8 @@ module ZohoCrm::Util
     parse(data)
   end
 
-  def build_url
-    # called method name
-    action = caller.first.split(' ')[1].delete('`').delete("'").camelize(:lower)
+  def build_url(method_name)
+    action = method_name.to_s.camelize(:lower)
     "https://crm.zoho.com/crm/private/json/#{zoho_module_name}/#{action}"
   end
 
