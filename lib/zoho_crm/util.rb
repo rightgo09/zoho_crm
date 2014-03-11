@@ -19,8 +19,8 @@ module ZohoCrm::Util
 
     data = Oj.load(response.body)
 
-    if nodata?(data)
-      $stderr.puts nodata_message(data)
+    if error?(data) || nodata?(data)
+      $stderr.puts message(data)
       return []
     end
 
@@ -69,8 +69,16 @@ module ZohoCrm::Util
     data["response"].has_key?("nodata")
   end
 
-  def nodata_message(data)
-    data["response"]["nodata"]["message"]
+  def error?(data)
+    data["response"].has_key?("error")
+  end
+
+  def message(data)
+    if error?(data)
+      data["response"]["error"]["message"]
+    elsif nodata?(data)
+      data["response"]["nodata"]["message"]
+    end
   end
 
   def parse(data)
