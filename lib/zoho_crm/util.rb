@@ -1,4 +1,5 @@
 require "httparty"
+require "oj"
 
 module ZohoCrm::Util
 
@@ -8,7 +9,34 @@ module ZohoCrm::Util
     end
 
     query = build_query(params)
-    HTTParty.get(url, query: query)
+
+    response = HTTParty.get(url, query: query)
+
+    results = []
+
+    unless response.code == 200
+      $stderr.puts "Zoho API HTTP status code is [#{response.code}], body is [#{response.body}]."
+      return results
+    end
+
+    data = Oj.load(response.body)
+
+    if data["response"].has_key?("nodata")
+      $stderr.puts data["response"]["nodata"]["message"]
+      return results
+    end
+
+    rows = data["response"]["result"]["Potentials"]["row"]
+    rows = [rows] if rows.class == Hash
+    results = rows.map do |row|
+      if row["FL"].class == Array
+        row["FL"].inject({}) { |h, r| h[r["val"]] = r["content"]; h }
+      else row["FL"].class == Hash
+        {row["FL"]["val"] => row["FL"]["content"]}
+      end
+    end
+
+    results
   end
 
   def build_url
@@ -31,7 +59,7 @@ module ZohoCrm::Util
   end
 
   def zoho_module_name
-    self.to_s.demodulize.pluralize
+    @zoho_module_name ||= self.to_s.demodulize.pluralize
   end
 
 end
