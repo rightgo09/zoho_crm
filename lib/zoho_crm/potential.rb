@@ -6,4 +6,9 @@ module ZohoCrm::Potential
     fetch(url, params)
   end
 
+  def self.get_record_by_id(params = {})
+    url = build_url
+    fetch(url, params)
+  end
+
 end
