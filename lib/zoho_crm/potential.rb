@@ -15,6 +15,11 @@ module ZohoCrm::Potential
         fetch(url, params)
       end
     end
+
+    def update_records(params = {})
+      url = build_url(__method__)
+      update(url, params)
+    end
   end
 
 end

@@ -1,21 +1,17 @@
 require "httparty"
 require "oj"
+require "erb"
 
 module ZohoCrm::Util
 
   def fetch(url, params)
-    if ZohoCrm.token.blank?
-      raise RuntimeError, "Please set up your Zoho token firstly: ZohoCrm.token = \"blahblahblah\""
-    end
+    check_token
 
     query = build_query(params)
 
     response = http_get(url, query)
 
-    unless response.code == 200
-      $stderr.puts "Zoho API HTTP status code is [#{response.code}], body is [#{response.body}]."
-      return []
-    end
+    valid_status_code?(response) or return []
 
     data = Oj.load(response.body)
 
@@ -24,7 +20,41 @@ module ZohoCrm::Util
       return []
     end
 
-    parse(data)
+    parse_fetched(data)
+  end
+
+  def update(url, params)
+    check_token
+
+    query = build_query(params)
+
+    response = http_post(url, query)
+
+    valid_status_code?(response) or return []
+
+    data = Oj.load(response.body)
+
+    if error?(data) || nodata?(data)
+      $stderr.puts message(data)
+      return []
+    end
+
+    parse_result(data)
+  end
+
+  def valid_status_code?(response)
+    if response.code == 200
+      true
+    else
+      $stderr.puts "Zoho API HTTP status code is [#{response.code}], body is [#{response.body}]."
+      false
+    end
+  end
+
+  def check_token
+    if ZohoCrm.token.blank?
+      raise RuntimeError, "Please set up your Zoho token firstly: ZohoCrm.token = \"blahblahblah\""
+    end
   end
 
   def build_url(method_name)
@@ -43,19 +73,35 @@ module ZohoCrm::Util
     end
 
     if query.has_key?("searchCondition") && query["searchCondition"].is_a?(Hash)
-      field, cond_pair = query["searchCondition"].first
-      op, val = cond_pair.first
-      if op == "contains"
-        val = "*#{val}*"
-      elsif op == "starts with"
-        val = "#{val}*"
-      elsif op == "ends with"
-        val = "*#{val}"
-      end
-      query["searchCondition"] = "(#{field}|#{op}|#{val})"
+      query["searchCondition"] = build_search_condition(query["searchCondition"])
+    end
+
+    if query.has_key?("xmlData") && query["xmlData"].is_a?(Hash)
+      query["xmlData"] = build_xml_data(query["xmlData"])
     end
 
     query
+  end
+
+  def build_xml_data(pairs)
+    xml_data = ""
+    pairs.each do |key, val|
+      xml_data << "<FL val=\"#{ERB::Util.html_escape(key)}\">#{ERB::Util.html_escape(val)}</FL>"
+    end
+    "<#{zoho_module_name}><row no=\"1\">#{xml_data}</row></#{zoho_module_name}>"
+  end
+
+  def build_search_condition(cond)
+    field, cond_pair = cond.first
+    op, val = cond_pair.first
+    if op == "contains"
+      val = "*#{val}*"
+    elsif op == "starts with"
+      val = "#{val}*"
+    elsif op == "ends with"
+      val = "*#{val}"
+    end
+    "(#{field}|#{op}|#{val})"
   end
 
   def zoho_module_name
@@ -71,7 +117,7 @@ module ZohoCrm::Util
   end
 
   def http_request(method, url, query)
-    $stderr.puts "#{method.to_s.capitalize} #{url} #{query}" if ZohoCrm.debug
+    $stderr.puts "#{method.to_s.upcase} #{url} #{query}" if ZohoCrm.debug
 
     response = HTTParty.send(method, url, query: query)
 
@@ -96,9 +142,20 @@ module ZohoCrm::Util
     end
   end
 
-  def parse(data)
-    rows = data["response"]["result"]["Potentials"]["row"]
+  def parse_fetched(data)
+    rows = data["response"]["result"][zoho_module_name]["row"]
     rows = [rows] if rows.class == Hash
+    parse_fl(rows)
+  end
+
+  def parse_result(data)
+    $stderr.puts data["response"]["result"]["message"] if ZohoCrm.debug
+    rows = data["response"]["result"]["recorddetail"]
+    rows = [rows] if rows.class == Hash
+    parse_fl(rows)
+  end
+
+  def parse_fl(rows)
     rows.map do |row|
       if row["FL"].class == Array
         row["FL"].inject({}) { |h, r| h[r["val"]] = r["content"]; h }
