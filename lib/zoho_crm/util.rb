@@ -3,6 +3,7 @@ require "oj"
 require "erb"
 
 module ZohoCrm::Util
+  attr_reader :response_time
 
   def fetch(url, params)
     check_token
@@ -119,7 +120,10 @@ module ZohoCrm::Util
   def http_request(method, url, query)
     $stderr.puts "#{method.to_s.upcase} #{url} #{query}" if ZohoCrm.debug
 
+    start_time = Time.now.instance_eval { self.to_i * 1000 + (usec/1000) }
     response = HTTParty.send(method, url, query: query)
+    end_time = Time.now.instance_eval { self.to_i * 1000 + (usec/1000) }
+    @response_time = (end_time - start_time) / 1000.0
 
     $stderr.puts "response: #{response}" if ZohoCrm.debug
 
