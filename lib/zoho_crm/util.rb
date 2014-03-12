@@ -63,16 +63,19 @@ module ZohoCrm::Util
   end
 
   def http_get(url, query)
-    if ZohoCrm.debug
-      $stderr.puts "url: #{url}"
-      $stderr.puts "query: #{query}"
-    end
+    http_request(:get, url, query)
+  end
 
-    response = HTTParty.get(url, query: query)
+  def http_post(url, query)
+    http_request(:post, url, query)
+  end
 
-    if ZohoCrm.debug
-      $stderr.puts "response: #{response}"
-    end
+  def http_request(method, url, query)
+    $stderr.puts "#{method.to_s.capitalize} #{url} #{query}" if ZohoCrm.debug
+
+    response = HTTParty.send(method, url, query: query)
+
+    $stderr.puts "response: #{response}" if ZohoCrm.debug
 
     response
   end
