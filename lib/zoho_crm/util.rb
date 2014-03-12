@@ -42,7 +42,7 @@ module ZohoCrm::Util
       query["selectColumns"] = zoho_module_name+"("+query["selectColumns"].join(",")+")"
     end
 
-    if query.has_key?("searchCondition") && query["selectColumns"].is_a?(Hash)
+    if query.has_key?("searchCondition") && query["searchCondition"].is_a?(Hash)
       field, cond_pair = query["searchCondition"].first
       op, val = cond_pair.first
       if op == "contains"
