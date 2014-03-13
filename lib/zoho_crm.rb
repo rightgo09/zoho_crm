@@ -8,5 +8,4 @@ end
 
 require "active_support/core_ext"
 require "zoho_crm/util"
-require "zoho_crm/potential"
-require "zoho_crm/lead"
+require "zoho_crm/api"
