@@ -3,7 +3,7 @@ require "oj"
 require "erb"
 
 module ZohoCrm::Util
-  attr_reader :response_time
+  attr_reader :response_time, :message
 
   def fetch(url, params)
     check_token
@@ -17,7 +17,7 @@ module ZohoCrm::Util
     data = Oj.load(response.body)
 
     if error?(data) || nodata?(data)
-      $stderr.puts message(data)
+      $stderr.puts @message
       return []
     end
 
@@ -131,19 +131,19 @@ module ZohoCrm::Util
   end
 
   def nodata?(data)
-    data["response"].has_key?("nodata")
+    if data["response"].has_key?("nodata")
+      @message = data["response"]["nodata"]["message"]
+      return true
+    end
+    false
   end
 
   def error?(data)
-    data["response"].has_key?("error")
-  end
-
-  def message(data)
-    if error?(data)
-      data["response"]["error"]["message"]
-    elsif nodata?(data)
-      data["response"]["nodata"]["message"]
+    if data["response"].has_key?("error")
+      @message = data["response"]["error"]["message"]
+      return true
     end
+    false
   end
 
   def parse_fetched(data)
@@ -153,7 +153,8 @@ module ZohoCrm::Util
   end
 
   def parse_result(data)
-    $stderr.puts data["response"]["result"]["message"] if ZohoCrm.debug
+    @message = data["response"]["result"]["message"]
+    $stderr.puts @message if ZohoCrm.debug
     rows = data["response"]["result"]["recorddetail"]
     rows = [rows] if rows.class == Hash
     parse_fl(rows)
