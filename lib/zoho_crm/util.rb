@@ -164,7 +164,7 @@ module ZohoCrm::Util
     rows.map do |row|
       if row["FL"].class == Array
         row["FL"].inject({}) { |h, r| h[r["val"]] = r["content"]; h }
-      else row["FL"].class == Hash
+      elsif row["FL"].class == Hash
         {row["FL"]["val"] => row["FL"]["content"]}
       end
     end
