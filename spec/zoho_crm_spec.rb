@@ -33,4 +33,16 @@ describe ZohoCrm::Util do
     end
   end
 
+  describe "#build_query" do
+    let(:token) { "hogehogehoge" }
+    let(:predefined_query) { {"scope" => "crmapi", "authtoken" => token} }
+    before { ZohoCrm.token = token }
+    context "snake_case" do
+      subject(:query) { z.build_query({new_format: 1}) }
+      it "should convert camel case" do
+        expect(query).to eq(predefined_query.merge({"newFormat" => 1}))
+      end
+    end
+  end
+
 end
