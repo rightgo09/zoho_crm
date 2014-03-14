@@ -8,12 +8,14 @@ describe ZohoCrm do
 end
 
 ZohoCrm.const_set("BlackCoffee", Class.new { extend ZohoCrm::Util })
+
 describe ZohoCrm::Util do
   let(:z) { ZohoCrm::BlackCoffee }
 
   describe "#build_url" do
+    subject(:url) { z.build_url(:get_my_records) }
     it "should build url" do
-      expect(z.build_url(:get_my_records)).to eq("https://crm.zoho.com/crm/private/json/BlackCoffees/getMyRecords")
+      expect(url).to eq("https://crm.zoho.com/crm/private/json/BlackCoffees/getMyRecords")
     end
   end
 
