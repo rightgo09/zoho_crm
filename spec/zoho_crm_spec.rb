@@ -116,4 +116,77 @@ describe ZohoCrm::Util do
     end
   end
 
+  describe "#fetch" do
+    let(:url) { "http://www.example.com" }
+    let(:query) { {"a" => 1} }
+    let(:token) { "hogehogehoge" }
+    let(:expected_query) { query.merge("authtoken" => token, "scope" => "crmapi") }
+    let(:response) { double(:response, code: code, body: body) }
+    let(:code) { 200 }
+
+    before do
+      ZohoCrm.token = token
+      HTTParty.should_receive(:get).with(url, {query: expected_query}).and_return(response)
+    end
+
+    subject(:results) { z.fetch(url, query) }
+
+    context "when response code is not 200" do
+      let(:code) { 500 }
+      let(:body) { "error" }
+
+      it "should return empty array" do
+        $stderr.should_receive(:puts).with("Zoho API HTTP status code is [#{code}], body is [#{body}].")
+        expect(results).to eq([])
+      end
+    end
+
+    context "when response includes 1 row and 1 content" do
+      let(:body) { '{"response":{"result":{"BlackCoffees":{"row":{"no":"1","FL":{"content":"スターバックス","val":"店舗名"}}}},"uri":"/"}}' }
+
+      it "should return parsed hash in array" do
+        expect(results).to eq([{"店舗名" => "スターバックス"}])
+      end
+    end
+
+    context "when response includes 1 row and 2 contents" do
+      let(:body) { '{"response":{"result":{"BlackCoffees":{"row":{"no":"1","FL":[{"content":"スターバックス","val":"店舗名"},{"content":"Starbucks","val":"Store Name"}]}}},"uri":"/"}}' }
+
+      it "should return parsed hash in array" do
+        expect(results).to eq([{"店舗名" => "スターバックス", "Store Name" => "Starbucks"}])
+      end
+    end
+
+    context "when response includes 2 row and 1 content" do
+      let(:body) { '{"response":{"result":{"BlackCoffees":{"row":[{"no":"1","FL":{"content":"スターバックス","val":"店舗名"}},{"no":"2","FL":{"content":"ドトール","val":"店舗名"}}]}},"uri":"/"}}' }
+
+      it "should return parsed hash in array" do
+        expect(results).to eq([{"店舗名" => "スターバックス"}, {"店舗名" => "ドトール"}])
+      end
+    end
+
+    shared_examples_for "the case of no data" do
+      before { $stderr.should_receive(:puts).with(message) }
+
+      it "should return empty array" do
+        expect(results).to eq([])
+        expect(z.message).to eq(message)
+      end
+    end
+
+    context "when response includes error" do
+      it_should_behave_like "the case of no data" do
+        let(:message) { "Invalid Ticket Id" }
+        let(:body) { %Q!{"response":{"error":{"message":"#{message}","code":"4834"},"uri":"/"}}! }
+      end
+    end
+
+    context "when response includes no data" do
+      it_should_behave_like "the case of no data" do
+        let(:message) { "There is no data to show" }
+        let(:body) { %Q!{"response":{"nodata":{"message":"#{message}","code":"4422"},"uri":"/"}}! }
+      end
+    end
+  end
+
 end
