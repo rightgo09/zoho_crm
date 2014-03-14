@@ -127,7 +127,7 @@ module ZohoCrm::Util
     end_time = Time.now.instance_eval { self.to_i * 1000 + (usec/1000) }
     @response_time = (end_time - start_time) / 1000.0
 
-    $stderr.puts "response: #{response}" if ZohoCrm.debug
+    $stderr.puts "response: #{response.body}" if ZohoCrm.debug
 
     response
   end
