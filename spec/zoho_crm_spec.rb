@@ -39,65 +39,79 @@ describe ZohoCrm::Util do
   describe "#build_query" do
     let(:token) { "hogehogehoge" }
     let(:predefined_query) { {"scope" => "crmapi", "authtoken" => token} }
+    let(:expected_query) { predefined_query.merge(built_query) }
     before { ZohoCrm.token = token }
 
-    context "when query is snake_case" do
-      subject(:query) { z.build_query({new_format: 1}) }
-      it "should convert camel case" do
-        expect(query).to eq(predefined_query.merge({"newFormat" => 1}))
+    shared_examples_for "building query" do
+      it "should build query" do
+        expect(query).to eq(expected_query)
       end
     end
 
-    context "when query is select_columns" do
+    context "when query includes snake_case" do
+      it_should_behave_like "building query" do
+        subject(:query) { z.build_query({new_format: 1}) }
+        let(:built_query) { {"newFormat" => 1} }
+      end
+    end
+
+    context "when query includes select_columns" do
       context 'that is "All"' do
-        subject(:query) { z.build_query({select_columns: "All"}) }
-        it "should convert selectColumns => string" do
-          expect(query).to eq(predefined_query.merge({"selectColumns" => "All"}))
+        it_should_behave_like "building query" do
+          subject(:query) { z.build_query({select_columns: "All"}) }
+          let(:built_query) { {"selectColumns" => "All"} }
         end
       end
 
       context 'that is ["店舗名"]' do
-        subject(:query) { z.build_query({select_columns: ["店舗名"]}) }
-        it "should convert selectColumns => Module(column)" do
-          expect(query).to eq(predefined_query.merge({"selectColumns" => "BlackCoffees(店舗名)"}))
+        it_should_behave_like "building query" do
+          subject(:query) { z.build_query({select_columns: ["店舗名"]}) }
+          let(:built_query) { {"selectColumns" => "BlackCoffees(店舗名)"} }
         end
       end
 
       context 'that is ["店舗名","産地"]' do
-        subject(:query) { z.build_query({select_columns: ["店舗名", "産地"]}) }
-        it "should convert selectColumns => Module(column,column)" do
-          expect(query).to eq(predefined_query.merge({"selectColumns" => "BlackCoffees(店舗名,産地)"}))
+        it_should_behave_like "building query" do
+          subject(:query) { z.build_query({select_columns: ["店舗名", "産地"]}) }
+          let(:built_query) { {"selectColumns" => "BlackCoffees(店舗名,産地)"} }
         end
       end
     end
 
-    context "when query is search_condition" do
+    context "when query includes search_condition" do
       context "that is partial match" do
-        subject(:query) { z.build_query({search_condition: {"店舗名" => {"contains" => "スター"}}}) }
-        it "should convert searchCondition => (Field|contains|*word*)" do
-          expect(query).to eq(predefined_query.merge({"searchCondition" => "(店舗名|contains|*スター*)"}))
+        it_should_behave_like "building query" do
+          subject(:query) { z.build_query({search_condition: {"店舗名" => {"contains" => "スター"}}}) }
+          let(:built_query) { {"searchCondition" => "(店舗名|contains|*スター*)"} }
         end
       end
 
       context "that is prefix match" do
-        subject(:query) { z.build_query({search_condition: {"店舗名" => {"starts with" => "スター"}}}) }
-        it "should convert searchCondition => (Field|starts with|word*)" do
-          expect(query).to eq(predefined_query.merge({"searchCondition" => "(店舗名|starts with|スター*)"}))
+        it_should_behave_like "building query" do
+          subject(:query) { z.build_query({search_condition: {"店舗名" => {"starts with" => "スター"}}}) }
+          let(:built_query) { {"searchCondition" => "(店舗名|starts with|スター*)"} }
         end
       end
 
       context "that is suffix match" do
-        subject(:query) { z.build_query({search_condition: {"店舗名" => {"ends with" => "バックス"}}}) }
-        it "should convert searchCondition => (Field|ends with|*word)" do
-          expect(query).to eq(predefined_query.merge({"searchCondition" => "(店舗名|ends with|*バックス)"}))
+        it_should_behave_like "building query" do
+          subject(:query) { z.build_query({search_condition: {"店舗名" => {"ends with" => "バックス"}}}) }
+          let(:built_query) { {"searchCondition" => "(店舗名|ends with|*バックス)"} }
         end
       end
 
       context "that is equal match" do
-        subject(:query) { z.build_query({search_condition: {"店舗名" => {"=" => "スターバックス"}}}) }
-        it "should convert searchCondition => (Field|=|word)" do
-          expect(query).to eq(predefined_query.merge({"searchCondition" => "(店舗名|=|スターバックス)"}))
+        it_should_behave_like "building query" do
+          subject(:query) { z.build_query({search_condition: {"店舗名" => {"=" => "スターバックス"}}}) }
+          let(:built_query) { {"searchCondition" => "(店舗名|=|スターバックス)"} }
         end
+      end
+    end
+
+    context "when query is xml_data" do
+      it_should_behave_like "building query" do
+        subject(:query) { z.build_query({xml_data: {"商品名" => "ブラック&コーヒー"}}) }
+        let(:built_query) { {"xmlData" => '<BlackCoffees><row no="1"><FL val="商品名">ブラック&amp;コーヒー</FL></row></BlackCoffees>'} }
       end
     end
   end
