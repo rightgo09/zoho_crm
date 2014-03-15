@@ -81,8 +81,6 @@ module ZohoCrm::Util
       query["xmlData"] = build_xml_data(query["xmlData"])
     end
 
-    @is_new_format2 = true if query["newFormat"].present? && query["newFormat"].to_s == "2"
-
     query
   end
 
@@ -169,12 +167,8 @@ module ZohoCrm::Util
               elsif row["FL"].class == Hash
                 {row["FL"]["val"] => row["FL"]["content"]}
               end
-      if @is_new_format2
-        pairs.keys.each do |key|
-          if pairs[key] == "null"
-            pairs[key] = nil
-          end
-        end
+      pairs.keys.each do |key|
+        pairs[key] = nil if pairs[key] == "null"
       end
       pairs
     end
