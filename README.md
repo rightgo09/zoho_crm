@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/rightgo09/zoho_crm.png?branch=master)](https://travis-ci.org/rightgo09/zoho_crm)
+[![Coverage Status](https://coveralls.io/repos/rightgo09/zoho_crm/badge.png?branch=master)](https://coveralls.io/r/rightgo09/zoho_crm?branch=master)
+
 # ZohoCrm
 
 Read data in Zoho CRM by using API.
