@@ -197,4 +197,47 @@ describe ZohoCrm::Util do
     end
   end
 
+  describe "#update" do
+    let(:url) { "http://www.example.com" }
+    let(:query) { {"a" => 1} }
+    let(:token) { "hogehogehoge" }
+    let(:expected_query) { query.merge("authtoken" => token, "scope" => "crmapi") }
+    let(:response) { double(:response, code: code, body: body) }
+    let(:code) { 200 }
+
+    before do
+      ZohoCrm.token = token
+      HTTParty.should_receive(:post).with(url, {query: expected_query}).and_return(response)
+    end
+
+    subject(:results) { z.update(url, query) }
+
+    context "when response code is not 200" do
+      let(:code) { 500 }
+      let(:body) { "error" }
+
+      it "should return empty array" do
+        $stderr.should_receive(:puts).with("Zoho API HTTP status code is [#{code}], body is [#{body}].")
+        expect(results).to eq([])
+      end
+    end
+
+    context "when data is successfully updated" do
+      let(:message) { "Record(s) updated successfully" }
+      let(:body) { %Q!{"response":{"result":{"message":"#{message}","recorddetail":{"FL":[{"content":"111111111111111111","val":"Id"},{"content":"2014-03-03 12:00:00","val":"Created Time"},{"content":"2014-03-03 13:00:00","val":"Modified Time"},{"content":"r9","val":"Created By"},{"content":"r9","val":"Modified By"}]}},"uri":"/"}}! }
+
+      it "should return parsed hash in array" do
+        expect(results).to eq([{"Id" => "111111111111111111", "Created Time" => "2014-03-03 12:00:00", "Modified Time" => "2014-03-03 13:00:00", "Created By" => "r9", "Modified By" => "r9"}])
+      end
+    end
+
+    context "when response includes error" do
+      it_should_behave_like "the case of no data" do
+        let(:message) { "Invalid Ticket Id" }
+        let(:body) { %Q!{"response":{"error":{"message":"#{message}","code":"4834"},"uri":"/"}}! }
+      end
+    end
+
+  end
+
 end
