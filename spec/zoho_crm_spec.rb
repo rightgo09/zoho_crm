@@ -116,6 +116,15 @@ describe ZohoCrm::Util do
     end
   end
 
+  shared_examples_for "the case of no data" do
+    before { $stderr.should_receive(:puts).with(message) }
+
+    it "should return empty array" do
+      expect(results).to eq([])
+      expect(z.message).to eq(message)
+    end
+  end
+
   describe "#fetch" do
     let(:url) { "http://www.example.com" }
     let(:query) { {"a" => 1} }
@@ -165,12 +174,11 @@ describe ZohoCrm::Util do
       end
     end
 
-    shared_examples_for "the case of no data" do
-      before { $stderr.should_receive(:puts).with(message) }
+    context "when content is null" do
+      let(:body) { '{"response":{"result":{"BlackCoffees":{"row":{"no":"1","FL":{"content":"null","val":"店舗名"}}}},"uri":"/"}}' }
 
-      it "should return empty array" do
-        expect(results).to eq([])
-        expect(z.message).to eq(message)
+      it "should return nil" do
+        expect(results).to eq([{"店舗名" => nil}])
       end
     end
 
