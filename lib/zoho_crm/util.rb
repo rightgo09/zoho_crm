@@ -36,7 +36,7 @@ module ZohoCrm::Util
     data = Oj.load(response.body)
 
     if error?(data) || nodata?(data)
-      $stderr.puts message(data)
+      $stderr.puts @message
       return []
     end
 
