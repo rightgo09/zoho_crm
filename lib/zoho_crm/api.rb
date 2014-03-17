@@ -38,6 +38,11 @@
         url = build_url(__method__)
         update(url, params)
       end
+
+      def delete_records(params = {})
+        url = build_url(__method__)
+        delete(url, params)
+      end
     end
   })
 end

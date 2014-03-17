@@ -240,4 +240,29 @@ describe ZohoCrm::Util do
 
   end
 
+  describe "#delete" do
+    let(:url) { "http://www.example.com" }
+    let(:query) { {"a" => 1} }
+    let(:token) { "hogehogehoge" }
+    let(:expected_query) { query.merge("authtoken" => token, "scope" => "crmapi") }
+    let(:response) { double(:response, code: code, body: body) }
+    let(:code) { 200 }
+
+    before do
+      ZohoCrm.token = token
+      HTTParty.should_receive(:get).with(url, {query: expected_query}).and_return(response)
+    end
+
+    subject(:results) { z.delete(url, query) }
+
+    context "when data is successfully deleted" do
+      let(:message) { "Record Id(s) : 111111111111111111,Record(s) deleted successfully" }
+      let(:body) { %Q!{"response":{"result":{"message":"#{message}","code":"5000"},"uri":"/"}}! }
+
+      it "should return empty array" do
+        expect(results).to eq([])
+      end
+    end
+  end
+
 end

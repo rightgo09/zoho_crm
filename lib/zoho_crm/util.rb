@@ -13,6 +13,10 @@ module ZohoCrm::Util
     execute(:post, url, params)
   end
 
+  def delete(url, params)
+    execute(:get, url, params)
+  end
+
   def execute(http_method, url, params)
     check_token
 
