@@ -48,18 +48,18 @@ Or install it yourself as:
 
 ### Get the token
 
-You can get the token to use Zoho CRM API from below link:
+You can get the token to use Zoho CRM API from the "Zoho CRM API" section available here:
 
-https://accounts.zoho.com/apiauthtoken/create?SCOPE=ZohoCRM/crmapi
+https://crm.zoho.com/crm/ShowSetup.do?tab=developerSpace&subTab=api
 
-### Set up Token
+### Setup Token
 
-You must set up the token before you do something.
+Before accessing Zoho data, you must first configure the access token.
 
     require "zoho_crm"
     ZohoCrm.token = "xxxxxxxxxxxxxxxx"
 
-### Read data
+### Reading Data
 
 This gem supports below methods:
 
@@ -92,11 +92,11 @@ This gem supports below methods:
     # request: {"selectColumns"=>"Potentials(Potential Name,Potential Owner)",
                 "searchCondition"=>"(Potential Name|contains|*foo*)"}
 
-Result data class is Hash, so you can read the content like below:
+The result data class is a Hash, so you can read the content like below:
 
     results[0]["Potential Name"]
 
-If you want to get all data with null content, you should do like below:
+If you want to get all data including null content, you should do like below:
 
     ZohoCrm::Potential.get_record_by_id(id: 11111111111111111, select_columns: "All", new_format: 2)
 
