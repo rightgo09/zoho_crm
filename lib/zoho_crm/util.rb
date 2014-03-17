@@ -6,30 +6,19 @@ module ZohoCrm::Util
   attr_reader :response_time, :message
 
   def fetch(url, params)
-    check_token
-
-    query = build_query(params)
-
-    response = http_get(url, query)
-
-    valid_status_code?(response) or return []
-
-    data = Oj.load(response.body)
-
-    if error?(data) || nodata?(data)
-      $stderr.puts @message
-      return []
-    end
-
-    parse_fetched(data)
+    execute(:get, url, params)
   end
 
   def update(url, params)
+    execute(:post, url, params)
+  end
+
+  def execute(http_method, url, params)
     check_token
 
     query = build_query(params)
 
-    response = http_post(url, query)
+    response = http_request(http_method, url, query)
 
     valid_status_code?(response) or return []
 
@@ -40,7 +29,7 @@ module ZohoCrm::Util
       return []
     end
 
-    parse_result(data)
+    parse(data)
   end
 
   def valid_status_code?(response)
@@ -109,14 +98,6 @@ module ZohoCrm::Util
     @zoho_module_name ||= self.to_s.demodulize.pluralize
   end
 
-  def http_get(url, query)
-    http_request(:get, url, query)
-  end
-
-  def http_post(url, query)
-    http_request(:post, url, query)
-  end
-
   def http_request(method, url, query)
     $stderr.puts "#{method.to_s.upcase} #{url} #{query}" if ZohoCrm.debug
 
@@ -146,16 +127,19 @@ module ZohoCrm::Util
     false
   end
 
-  def parse_fetched(data)
-    rows = data["response"]["result"][zoho_module_name]["row"]
-    rows = [rows] if rows.class == Hash
-    parse_fl(rows)
-  end
+  def parse(data)
+    @message = data["response"]["result"]["message"] rescue nil
+    if @message.present? && ZohoCrm.debug
+      $stderr.puts @message
+    end
 
-  def parse_result(data)
-    @message = data["response"]["result"]["message"]
-    $stderr.puts @message if ZohoCrm.debug
-    rows = data["response"]["result"]["recorddetail"]
+    rows = if data["response"]["result"].has_key?("recorddetail")
+             data["response"]["result"]["recorddetail"]
+           elsif data["response"]["result"].has_key?(zoho_module_name)
+             data["response"]["result"][zoho_module_name]["row"]
+           else
+             []
+           end
     rows = [rows] if rows.class == Hash
     parse_fl(rows)
   end
