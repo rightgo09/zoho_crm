@@ -147,8 +147,8 @@ module ZohoCrm::Util
               elsif row["FL"].class == Hash
                 {row["FL"]["val"] => row["FL"]["content"]}
               end
-      pairs.keys.each do |key|
-        pairs[key] = nil if pairs[key] == "null"
+      pairs.each do |key, val|
+        pairs[key] = nil if val == "null"
       end
       pairs
     end
