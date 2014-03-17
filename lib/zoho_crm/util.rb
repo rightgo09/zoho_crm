@@ -112,19 +112,15 @@ module ZohoCrm::Util
   end
 
   def nodata?(data)
-    if data["response"].has_key?("nodata")
-      @message = data["response"]["nodata"]["message"]
-      return true
-    end
-    false
+    !!unusual_message(data, "nodata")
   end
 
   def error?(data)
-    if data["response"].has_key?("error")
-      @message = data["response"]["error"]["message"]
-      return true
-    end
-    false
+    !!unusual_message(data, "error")
+  end
+
+  def unusual_message(data, key)
+    @message = data["response"][key]["message"] rescue nil
   end
 
   def parse(data)
