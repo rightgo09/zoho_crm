@@ -6,6 +6,7 @@ module ZohoCrm
   end
 end
 
+require "active_support"
 require "active_support/core_ext"
 require "zoho_crm/util"
 require "zoho_crm/api"
