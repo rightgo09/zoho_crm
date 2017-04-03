@@ -9,6 +9,10 @@ module ZohoCrm::Util
     execute(:get, url, params)
   end
 
+  def insert(url, params)
+    execute(:post, url, params)
+  end
+
   def update(url, params)
     execute(:post, url, params)
   end
