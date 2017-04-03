@@ -34,6 +34,11 @@
         end
       end
 
+      def insert_records(params = {})
+        url = build_url(__method__)
+        insert(url, params)
+      end
+
       def update_records(params = {})
         url = build_url(__method__)
         update(url, params)

@@ -197,6 +197,31 @@ describe ZohoCrm::Util do
     end
   end
 
+  describe "#insert" do
+    let(:url) { "http://www.example.com" }
+    let(:query) { {"a" => 1} }
+    let(:token) { "hogehogehoge" }
+    let(:expected_query) { query.merge("authtoken" => token, "scope" => "crmapi") }
+    let(:response) { double(:response, code: code, body: body) }
+    let(:code) { 200 }
+
+    before do
+      ZohoCrm.token = token
+      HTTParty.should_receive(:post).with(url, { query: expected_query }).and_return(response)
+    end
+
+    subject(:results) { z.insert(url, query) }
+
+    context "when data is successfully inserted" do
+      let(:message) { "Record(s) added successfully" }
+      let(:body) { %Q!{"response":{"result":{"recorddetail":{"FL":[{"val":"Id","content":"2434346000000149011"},{"val":"Created Time","content":"2017-04-03 10:02:44"}]}},"uri":"/"}}! }
+
+      it "should return empty array" do
+        expect(results).to eq([{"Id"=>"2434346000000149011", "Created Time"=>"2017-04-03 10:02:44"}])
+      end
+    end
+  end
+
   describe "#update" do
     let(:url) { "http://www.example.com" }
     let(:query) { {"a" => 1} }
